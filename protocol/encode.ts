@@ -1,5 +1,6 @@
-import { twistedEdwards } from "@noble/curves/abstract/edwards";
-import type { ExtPointType } from "@noble/curves/abstract/edwards";
+import type { ExtPointType } from '@noble/curves/abstract/edwards';
+import type {SeededRNG } from './random';
+import { ed25519 } from './edwards';
 
 function strToBytes(s: string): Uint8Array {
     return Uint8Array.from(s.split('').map(x => x.charCodeAt(0)));
@@ -13,61 +14,26 @@ function PointToPlaintext(plaintextPoint: ExtPointType): Uint8Array {
     return plaintext.subarray(1, plaintext[0]+1);
 }
 
+function MessageToPoint(message: Uint8Array, rng: SeededRNG): ExtPointType {
+    const buf = new Uint8Array(32);
 
-/*
-
-
-func randomScalar(rng io.Reader) *edwards25519.Scalar {
-	b := make([]byte, 32)
-	for {
-		n, err := rng.Read(b)
-		if err != nil {
-			panic(fmt.Sprintf("%+v", err))
-		}
-		if n != len(b) {
-			panic(fmt.Sprintf("short read: %d != %d", n, len(b)))
-		}
-		s, err := new(edwards25519.Scalar).SetBytesWithClamping(b)
-		if err == nil {
-			return s
-		}
-	}
-}
-
-func pointFromMessage(message []byte, rng io.Reader) *edwards25519.Point {
-	buf := make([]byte, 32)
-
-	// NOTE: the smaller the better here otherwise its guessable what
-	// went into the point, we may want to make this artificially only a
-	// couple bytes
-	if len(message) > len(buf)-1 {
-		panic("message to big to embed, must be less than 32 bytes!")
+    if (message.length > buf.length) {
+		throw("message to big to embed, must be less than 32 bytes!")
 	}
 
 	// We have to trial and error the point selection
-	for {
-		n, err := rng.Read(buf)
-		if err != nil {
-			panic(err)
-		}
-		if n != len(buf) {
-			panic(fmt.Sprintf("short read: %d != %d", n, len(buf)))
-		}
+	while(true) {
+        const buf = rng.RandomBytes(32);
+		buf[0] = message.length & 0xFF;
 
-		buf[0] = byte(len(message))
-		copy(buf[1:len(message)+1], message)
+        for (let i = 0; i < message.length; i++) {
+            const idx = i + 1;
+            buf[idx] = message[i];
+        }
 
-		p, err := new(edwards25519.Point).SetBytes(buf)
-		if err == nil {
-			return p
-		}
-
+        try {
+            const p = ed25519.ExtendedPoint.fromHex(buf);
+            return p;
+        } catch {}
 	}
 }
-
-func genkeys(rng io.Reader) (*edwards25519.Scalar, *edwards25519.Point) {
-	priv := randomScalar(rng)
-	pub := new(edwards25519.Point).ScalarBaseMult(priv)
-	return priv, pub
-}
-*/

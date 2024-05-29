@@ -1,20 +1,25 @@
 import { keccak_256 } from "@noble/hashes/sha3";
 import { randomBytes } from '@noble/ciphers/webcrypto';
-import type { ExtPointType } from "@noble/curves/abstract/edwards";
-import { x25519 } from '@noble/curves/ed25519';
+import { ed25519 } from './edwards';
+import { ExtPointType } from "@noble/curves/abstract/edwards";
 
-type SeededRNG = { 
+export type SeededRNG = { 
     curState: Uint8Array;
     seed: Uint8Array;
     Forward: () => Uint8Array;
     RandomBytes: (numBytes: number) => Uint8Array;
 }
 
-function NewSeed(): Uint8Array {
+export type KeyPair = {
+    Public: Uint8Array,
+    Private: Uint8Array
+}
+
+export function NewSeed(): Uint8Array {
     return randomBytes(32);
 }
 
-function NewSeededRNG(seed: Uint8Array): SeededRNG {
+export function NewSeededRNG(seed: Uint8Array): SeededRNG {
     var startState: Uint8Array = keccak_256(seed);
     var rng: SeededRNG = {
         curState: startState,
@@ -32,7 +37,7 @@ function NewSeededRNG(seed: Uint8Array): SeededRNG {
     return rng;
 }
 
-function ReadRange(start: number, end: number, rng: SeededRNG): number {
+export function ReadRange(start: number, end: number, rng: SeededRNG): number {
     const size = end - start;
     const max = 2**32 - 1;
 
@@ -47,14 +52,30 @@ function ReadRange(start: number, end: number, rng: SeededRNG): number {
     }
 }
 
-function RandomPoint(rng: SeededRNG): Uint8Array {
-    const b = rng.RandomBytes(32);
-    return x25519.getPublicKey(b);
+export function GenerateKeys(rng: SeededRNG): KeyPair {
+    const p = rng.RandomBytes(32);
+    return {
+        Private: p,
+        Public: ed25519.getPublicKey(p)
+    }
 }
 
-/*
-func randomScalar(rng io.Reader) *edwards25519.Scalar {
-    const b = rng.RandomBytes(32);
+export function RandomPoint(rng: SeededRNG): ExtPointType {
+    while(true) {
+        const b = rng.RandomBytes(32);
+        try {
+            const p = ed25519.ExtendedPoint.fromHex(b);
+            return p;
+        } catch {}
+    }
 }
 
-*/
+export function RandomScalar(rng: SeededRNG): Uint8Array {
+    const bytes = rng.RandomBytes(32);
+    // optional; but mandatory in ed25519
+    bytes[0] &= 248;
+    bytes[31] &= 127;
+    bytes[31] |= 64;
+    return bytes;
+}
+
