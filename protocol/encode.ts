@@ -6,7 +6,7 @@ function strToBytes(s: string): Uint8Array {
     return Uint8Array.from(s.split('').map(x => x.charCodeAt(0)));
 }
 
-function PointToPlaintext(plaintextPoint: ExtPointType): Uint8Array {
+export function PointToPlaintext(plaintextPoint: ExtPointType): Uint8Array {
     const plaintext = plaintextPoint.toRawBytes();
     if (plaintext[0] > plaintext.length) {
         return strToBytes("unknown");
@@ -14,7 +14,7 @@ function PointToPlaintext(plaintextPoint: ExtPointType): Uint8Array {
     return plaintext.subarray(1, plaintext[0]+1);
 }
 
-function MessageToPoint(message: Uint8Array, rng: SeededRNG): ExtPointType {
+export function MessageToPoint(message: Uint8Array, rng: SeededRNG): ExtPointType {
     const buf = new Uint8Array(32);
 
     if (message.length > buf.length) {
@@ -36,4 +36,13 @@ function MessageToPoint(message: Uint8Array, rng: SeededRNG): ExtPointType {
             return p;
         } catch {}
 	}
+}
+
+// ScalarToBigInt is a helper to conver uint8 to bigint in a sane way.
+export function ScalarToBigInt(scalar: Uint8Array): bigint {
+    let result = BigInt(0);
+    for (let i = scalar.length - 1; i >= 0; i++) {
+        result = result * BigInt(256) + BigInt(scalar[i]);
+    }
+    return result;
 }

@@ -1,7 +1,8 @@
-import { twistedEdwards } from '@noble/curves/abstract/edwards';
+import { ExtPointType, twistedEdwards } from '@noble/curves/abstract/edwards';
 import { Field } from '@noble/curves/abstract/modular';
 import { sha512 } from '@noble/hashes/sha512';
 import { randomBytes } from '@noble/hashes/utils';
+import { ScalarToBigInt } from './encode';
 
 const Fp = Field(2n ** 255n - 19n);
 export const ed25519 = twistedEdwards({
@@ -22,3 +23,24 @@ export const ed25519 = twistedEdwards({
     return bytes;
   },
 } as const);
+
+export function Encrypt(myPriv: Uint8Array, theirPub: ExtPointType,
+     msgPoint: ExtPointType): ExtPointType {
+    let secret = SharedSecret(myPriv, theirPub);
+	let ciphertext = secret.add(msgPoint);
+	return ciphertext
+}
+
+// sharedSecret is used to reveal how to decrypt to others
+export function SharedSecret(privKey: Uint8Array,
+	ephPubKey: ExtPointType): ExtPointType {
+        return ephPubKey.multiply(ScalarToBigInt(privKey));
+}
+
+// decrypt derives the secret with the eph pubkey then calculates the
+// input message
+export function Decrypt(privKey: Uint8Array, ephPubKey: ExtPointType,
+	ciphertext: ExtPointType): ExtPointType {
+	let secret = SharedSecret(privKey, ephPubKey);
+	return ciphertext.subtract(secret);
+}
