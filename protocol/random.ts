@@ -79,3 +79,18 @@ export function RandomScalar(rng: SeededRNG): Uint8Array {
     return bytes;
 }
 
+// Standard FY Shuffle algorithm
+export function Shuffle(numCards: number, rng: SeededRNG): number[] {
+    let cards = new Array(numCards);
+    for (let i = 0; i < numCards; i++) {
+        cards[i] = i;
+    }
+
+	for (let i = numCards - 1; i > 0; i--) {
+		let j = ReadRange(0, i, rng);
+		let swap = cards[j]
+		cards[j] = cards[i]
+		cards[i] = swap
+	}
+	return cards
+}
