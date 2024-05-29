@@ -11,7 +11,7 @@ export type SeededRNG = {
 }
 
 export type KeyPair = {
-    Public: Uint8Array,
+    Public: ExtPointType,
     Private: Uint8Array
 }
 
@@ -56,7 +56,7 @@ export function GenerateKeys(rng: SeededRNG): KeyPair {
     const p = rng.RandomBytes(32);
     return {
         Private: p,
-        Public: ed25519.getPublicKey(p)
+        Public: ed25519.ExtendedPoint.fromHex(ed25519.getPublicKey(p))
     }
 }
 
