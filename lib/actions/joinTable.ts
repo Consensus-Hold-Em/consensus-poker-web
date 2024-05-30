@@ -3,18 +3,19 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { getKeypair } from "../keypair/getKeyPair"
 import {
   PACKAGE_ADDRESS,
-  PLAYER2_SECRET_KEY,
 } from "../config";
 import { MIST_PER_SUI } from "@mysten/sui.js/utils";
 
 export interface SUIProps {
   suiClient: SuiClient;
   cardTableId: string;
+  playerKey: string;
 }
 
 export const joinTable = async ({
   suiClient,
-  cardTableId
+  cardTableId,
+  playerKey
 }: SUIProps): Promise<string | undefined> => {
   console.log("Joining CardTable...");
   const tx = new TransactionBlock();
