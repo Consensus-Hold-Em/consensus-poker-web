@@ -3,7 +3,6 @@ import { CardNames, EncryptPlayerCard, EncryptPoolCardP0, EncryptPoolCardPN, Enc
 import { SharedSecret, ed25519 } from "./edwards";
 import { GenerateKeys, KeyPair, NewSeededRNG, RandomPoint, SeededRNG, Shuffle } from "./random";
 import { BytesToStr, MessageToPoint, PointToPlaintext, StrToBytes } from "./encode";
-import { init } from "next/dist/compiled/webpack/webpack";
 
 type InitialHandState = {
     Player: EncryptedCard[]|null, // len of 2, null for other players
