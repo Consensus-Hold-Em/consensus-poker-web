@@ -1,7 +1,8 @@
 import type { ExtPointType } from '@noble/curves/abstract/edwards';
 import { GenerateKeys, RandomScalar, SeededRNG } from './random';
-import { Encrypt, SharedSecret, ed25519 } from './edwards';
+import { Encrypt, SharedSecret } from './edwards';
 import { ScalarToBigInt } from './encode';
+import { ed25519, x25519 } from '@noble/curves/ed25519';
 
 export const cards = new Array("Ace", "King", "Queen", "Jack", "10",
 "9", "8", "7", "6", "5", "4", "3", "2");
@@ -49,7 +50,8 @@ export function InitCards(numPlayers: number, numCards: number): string[] {
 
 	// First Card
 	for (let i = 0; i < numPlayers; i++) {
-		res[curCard] = "P" + i + CardNames.PlayerCards[0];
+        let str = new String(("P" + i + CardNames.PlayerCards[0]));
+		res[curCard] = str.toString();
 		curCard += 1;
 	}
 
@@ -59,7 +61,8 @@ export function InitCards(numPlayers: number, numCards: number): string[] {
 
 	// Second Card
 	for (let i = 0; i < numPlayers; i++) {
-		res[curCard] = "P" + i + CardNames.PlayerCards[1];
+        let str = new String("P" + i + CardNames.PlayerCards[1]);
+		res[curCard] = str.toString();
 		curCard += 1;
 	}
 
@@ -106,13 +109,14 @@ export function EncryptPlayerCard(playerPubKeys: ExtPointType[], rng: SeededRNG,
 	// The "Message" is the card and the secret, this is what pops
 	// out of the mix, and the player can find which one it is
 	// by subtracting their secret.
-    let m = cardSecret.add(cardPoint);
+    let m = cardPoint.add(cardSecret);
+    // let m = cardPoint;
 
     // m := cardPoint
 	// the 'r' value in C1, which gets re-encrypted at each hop
 	// note: weakness here
 	let r = RandomScalar(rng);
-    let c1pt = ed25519.ExtendedPoint.BASE.multiply(ScalarToBigInt(r));
+    let c1pt = ed25519.ExtendedPoint.fromPrivateKey(r);
 
 	var c2 = Encrypt(r, playerPubKeys[0], m)
 	for (let i = 1; i < playerPubKeys.length; i++) {
@@ -135,7 +139,7 @@ export function EncryptPoolCardP0(privKey: Uint8Array,
 	rng: SeededRNG, cardPoint: ExtPointType): EncryptedCard {
 
 	let r = RandomScalar(rng);
-	let c1pt = ed25519.ExtendedPoint.BASE.multiply(ScalarToBigInt(r));
+	let c1pt = ed25519.ExtendedPoint.fromPrivateKey(r);
 
 	var c2 = Encrypt(r, playerPubKeys[0], cardPoint);
 	for (let i = 1; i < playerPubKeys.length; i++) {

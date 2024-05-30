@@ -1,7 +1,9 @@
 import { keccak_256 } from "@noble/hashes/sha3";
 import { randomBytes } from '@noble/ciphers/webcrypto';
-import { ed25519 } from './edwards';
 import { ExtPointType } from "@noble/curves/abstract/edwards";
+import { bytesToHex } from "@noble/curves/abstract/utils";
+import { ed25519, encodeToCurve, hashToCurve } from "@noble/curves/ed25519";
+import { ScalarToBigInt } from "./encode";
 
 export type SeededRNG = { 
     curState: Uint8Array;
@@ -31,7 +33,8 @@ export function NewSeededRNG(seed: Uint8Array): SeededRNG {
         },
         RandomBytes(this: SeededRNG, numBytes: number): Uint8Array {
             // FIXME: this maxes out at 32 but we never ask for moe than that
-            return rng.Forward().subarray(0, numBytes);
+            this.Forward();
+            return this.curState.subarray(0, numBytes);
         }
     }
     return rng;
@@ -56,22 +59,17 @@ export function GenerateKeys(rng: SeededRNG): KeyPair {
     const p = rng.RandomBytes(32);
     return {
         Private: p,
-        Public: ed25519.ExtendedPoint.fromHex(ed25519.getPublicKey(p))
+        Public: ed25519.ExtendedPoint.fromPrivateKey(p)
     }
 }
 
 export function RandomPoint(rng: SeededRNG): ExtPointType {
-    while(true) {
-        const b = rng.RandomBytes(32);
-        try {
-            const p = ed25519.ExtendedPoint.fromHex(b);
-            return p;
-        } catch {}
-    }
+    const b = rng.RandomBytes(32);
+    return ed25519.ExtendedPoint.fromPrivateKey(b);
 }
 
 export function RandomScalar(rng: SeededRNG): Uint8Array {
-    const bytes = rng.RandomBytes(32);
+    let bytes = rng.RandomBytes(32);
     // optional; but mandatory in ed25519
     bytes[0] &= 248;
     bytes[31] &= 127;
