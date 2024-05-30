@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-slot": "^1.0.2",
     "@noble/ciphers": "^0.5.3",
     "@noble/curves": "^1.4.0",
     "@noble/hashes": "^1.4.0",
