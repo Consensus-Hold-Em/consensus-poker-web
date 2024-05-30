@@ -2,14 +2,20 @@ import type { ExtPointType } from '@noble/curves/abstract/edwards';
 import type {SeededRNG } from './random';
 import { ed25519 } from './edwards';
 
-function strToBytes(s: string): Uint8Array {
+export function StrToBytes(s: string): Uint8Array {
     return Uint8Array.from(s.split('').map(x => x.charCodeAt(0)));
+}
+
+export function BytesToStr(b: Uint8Array): string {
+    const a = Array.from(b);
+    // cheap but effective...
+    return JSON.stringify(a);
 }
 
 export function PointToPlaintext(plaintextPoint: ExtPointType): Uint8Array {
     const plaintext = plaintextPoint.toRawBytes();
     if (plaintext[0] > plaintext.length) {
-        return strToBytes("unknown");
+        return StrToBytes("unknown");
     }
     return plaintext.subarray(1, plaintext[0]+1);
 }
