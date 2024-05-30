@@ -31,13 +31,12 @@ export type EncryptedCard = {
 // DeckReference returns a mapping of integer position to the name of the 
 // card represented by that integer.
 export function DeckReference(): string[] {
-    const numCards = cards.length * suites.length
+    const numCards = cards.length * suites.length;
     var deck = new Array<string>(numCards);
     for (let i = 0; i < suites.length; i++) {
-        const s = suites[i];
         for (let j = 0; j < cards.length; j++) {
-            const c = cards[i];
-            deck[i*cards.length+j] = c + " of " + s
+            const c = cards[j];
+            deck[i*cards.length+j] = c + " of " + suites[i]
         }
     }
     return deck;
