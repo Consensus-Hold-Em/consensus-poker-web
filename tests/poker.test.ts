@@ -103,7 +103,7 @@ describe('Crypto Tests', () => {
 //     }
 
     for (const i of players.keys()) {
-        console.log("Player 1: ");
+        console.log("Player " + i + ": ");
         const card1 = "P" + i + CardNames.PlayerCards[0];
         const card2 = "P" + i + CardNames.PlayerCards[1];
         console.log(reference[FindPlayerCard(
