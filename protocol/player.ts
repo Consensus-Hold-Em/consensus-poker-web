@@ -1,6 +1,6 @@
 import { ExtPointType } from "@noble/curves/abstract/edwards"
 import { CardNames, EncryptPlayerCard, EncryptPoolCardP0, EncryptPoolCardPN, EncryptedCard, InitCards } from "./cards"
-import { SharedSecret } from "./edwards";
+import { SharedSecret, ed25519 } from "./edwards";
 import { GenerateKeys, KeyPair, NewSeededRNG, RandomPoint, SeededRNG, Shuffle } from "./random";
 import { BytesToStr, MessageToPoint, PointToPlaintext, StrToBytes } from "./encode";
 import { init } from "next/dist/compiled/webpack/webpack";
@@ -166,7 +166,12 @@ export function FindPlayerCard(deck: EncryptedCard[],
 }
 
 export function FindPoolCard(deck: EncryptedCard[],
-    secrets: Uint8Array[], cardName: string): number {
-    
-    return 0;
+    privKeys: Uint8Array[], playerPubKeys: ExtPointType[],
+     cardName: string): number {
+    var secret = ed25519.ExtendedPoint.ZERO;
+    for (const i of privKeys.keys()) {
+        secret = secret.add(SharedSecret(privKeys[i], playerPubKeys[i]));
+    }
+
+    return FindPlayerCard(deck, secret, cardName);
 }
