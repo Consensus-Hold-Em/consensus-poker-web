@@ -22,7 +22,7 @@ export const bet = async ({
   ]);
 
   tx.moveCall({
-    target: `${PACKAGE_ADDRESS}::consensus_holdem::create_table`,
+    target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::consensus_holdem::create_table`,
     arguments: [
       buyInCoin,
     ],

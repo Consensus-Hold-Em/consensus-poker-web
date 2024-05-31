@@ -183,8 +183,8 @@ export const startHand = async ({
 
     // Note: doesn't work
     // let unsubscribe = await suiClient.subscribeEvent({
-    //   filter: { MoveEventType: `${PACKAGE_ADDRESS}::consensus_holdem::StartHandEvent` },
-    //   // filter: { Package: `${PACKAGE_ADDRESS}` },
+    //   filter: { MoveEventType: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::consensus_holdem::StartHandEvent` },
+    //   // filter: { Package: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}` },
     //   onMessage: (event) => {
     //     console.log('StartHandEvent', JSON.stringify(event, null, 2));
     //     submitStartHand(event, unsubscribe);

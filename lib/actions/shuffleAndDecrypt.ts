@@ -10,6 +10,7 @@ import { NewSeed, NewSeededRNG } from "../../protocol/random";
 import { AssembleDeck, FindPlayerCard, FindPoolCard, GenPlayerKeys, ShuffleAndDecrypt } from "../../protocol/player";
 import { parseHandStateJSON, readSuiBytes, readSuiString } from "./startHand";
 import { ExtPointType } from "@noble/curves/abstract/edwards";
+import { act } from "react";
 
 
 export type ShuffledDeck = {
@@ -42,19 +43,20 @@ export interface SUIProps {
     suiClient: SuiClient;
     cardTableId: string;
     playerKey: string;
+    playerSeedKey: string;
 }
 
 // startHand is called by each player, starting with player 0.
 export const shuffleAndDecrypt= async ({
     suiClient,
     cardTableId,
-    playerKey
+    playerKey,
+    playerSeedKey,
 }: SUIProps) => {
     const player_id = await getPlayerId(suiClient, cardTableId, playerKey);
     const card_table = await getCardTableObject(suiClient, cardTableId);
 
-    let seedb64 = process.env[`SEED${player_id}`] as string;
-    let seed = new Uint8Array(Buffer.from(seedb64, 'base64'));
+    let seed = new Uint8Array(Buffer.from(playerSeedKey, 'base64'));
     console.log("SEED: " + seed);
     let rng = NewSeededRNG(seed);
     let player_keys = GenPlayerKeys(rng);
@@ -82,13 +84,21 @@ export const shuffleAndDecrypt= async ({
 
     deck.d = ShuffleAndDecrypt(deck.d, player_keys.myPublishedKeys.Private,
         next_player_key, rng);
+
+    if(player_id == 2) {
+      const actualCardRef = FindPlayerCard(deck.d, player_keys.myCards[0], "P2Card1");
+      const actualCard = DeckReference()[actualCardRef];
+      console.log("Actual Card: " + actualCard);
+    }
+
+    
             
     const tx = new TransactionBlock();
 
     console.log(player_id, card_table.players[player_id])
-  
+
     tx.moveCall({
-      target: `${PACKAGE_ADDRESS}::consensus_holdem::ShuffleAndDecrypt`,
+      target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::consensus_holdem::ShuffleAndDecrypt`,
       arguments: [
         tx.object(cardTableId),
         tx.pure(player_id),
