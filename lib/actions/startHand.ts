@@ -1,47 +1,101 @@
-import { SuiClient, SuiObjectChangeCreated, getFullnodeUrl } from "@mysten/sui.js/client";
+import { SuiClient, SuiEvent, SuiObjectChangeCreated, Unsubscribe, getFullnodeUrl } from "@mysten/sui.js/client";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { getKeypair } from "@/lib/keypair/getKeyPair"
-import { getBLSPublicKey } from "@/lib/bls/getBLSPublicKey";
-import type {InitialHandState} from "@/protocol/player";
-
+import { getKeypair } from "../keypair/getKeyPair"
+import {GenPlayerKeys, StartHand, type InitialHandState} from "../../protocol/player";
+import { keccak_256 } from "@noble/hashes/sha3";
 import {
   PACKAGE_ADDRESS,
-  Player1_SECRET_KEY,
-} from "@/lib/config";
-import { MIST_PER_SUI } from "@mysten/sui.js/utils";
+} from "../../lib/config";
+import { SUIProps } from "./joinTable";
+import { getCardTableObject } from "../getObject/getCardTableObject";
+import { NewSeed, NewSeededRNG } from "../../protocol/random";
+import { ExtPointType } from "@noble/curves/abstract/edwards";
+import { ed25519 } from "@noble/curves/ed25519";
+import { getPlayerId } from "../getPlayerId";
+import { EncryptedCard } from "@/protocol/cards";
 
 export interface StartHandProps {
     suiClient: SuiClient;
-    player_id: Number,
-    public_key: Uint8Array,
-    commitment: Uint8Array, 
-    prev_hand_state: InitialHandState | null
 }
-  
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
 // startHand is called by each player, starting with player 0.
 export const startHand = async ({
     suiClient,
-  }: StartHandProps): Promise<string | undefined> => {
-    console.log("Creating CardTable...");
+    cardTableId,
+    playerKey
+}: SUIProps) => {
+  // Get public key from playerKey
+  const player_id = await getPlayerId(suiClient, cardTableId, playerKey);
+  const card_table = await getCardTableObject(suiClient, cardTableId);
+  
+  let public_keys = new Array<ExtPointType>(card_table.current_keys.length);
+  for (const i of card_table.current_keys.keys()) {
+    console.log(card_table.current_keys[i]);
+    const hexStr = card_table.current_keys[i].map(x => String.fromCharCode(x)).join('').slice(2);
+    const keyBytes = Uint8Array.from(Buffer.from(hexStr, 'hex'));
+    console.log(keyBytes);
+    public_keys[i] = ed25519.ExtendedPoint.fromHex(keyBytes);
+  }
+  
+  const submitStartHand = (prev_hand_event: SuiEvent | null, unsubscribe: Unsubscribe | null) => {
+    // parse SuiEvent into HandState
+    let prev_hand: InitialHandState | null = null;
+    if (prev_hand_event && player_id != 0) {
+      const prev_hand_json = prev_hand_event!.parsedJson as any
+      console.log(prev_hand_json);
+      const prev_player_id = prev_hand_json["player_id"] as number;
+      const prev_hand = prev_hand_json['hand_state'] as InitialHandState;
+      console.log(prev_hand);
+
+      if (prev_player_id != (player_id - 1) ) {
+        console.log(`StartHand: ignoring prev_player: ${prev_player_id} for ${player_id}`);
+        return;
+      }
+    }
+    // Read seed, then create commitment
+    let seedb64 = process.env[`SEED${player_id}`] as string;
+    let seed = new Uint8Array(Buffer.from(seedb64, 'base64'));
+    console.log("SEED: " + seed);
+    let commitment = keccak_256("Seed: " + seed);
+    let rng = NewSeededRNG(seed);
+    let player_keys = GenPlayerKeys(rng);
+
+    
+    // call the init hand state, logic on this differs based on player id
+    let hand = StartHand(player_id,
+      player_keys,
+      prev_hand,
+      public_keys,
+      rng
+    );
+
+    console.log('d', public_keys[player_id])
+    console.log(public_keys[player_id].toRawBytes())
+
+ 
+
     const tx = new TransactionBlock();
-  
-    const houseCoin = tx.splitCoins(tx.gas, [
-      tx.pure(10 * Number(MIST_PER_SUI)),
-    ]);
-    let adminBLSPublicKey = getBLSPublicKey(Player1_SECRET_KEY!);
-  
     tx.moveCall({
-      target: `${PACKAGE_ADDRESS}::consensus_holdem::create_table`,
+      target: `${PACKAGE_ADDRESS}::consensus_holdem::start_hand`,
       arguments: [
-        tx.object(HOUSE_ADMIN_CAP),
-        houseCoin,
-        tx.pure(Array.from(adminBLSPublicKey)),
+        tx.object(cardTableId),
+        tx.pure(player_id),
+        tx.pure(public_keys[player_id].toHex()),
+        tx.pure(Buffer.from(commitment).toString('hex')),
+        tx.pure(JSON.stringify(hand)),
       ],
     });
-  
-    return suiClient
+
+    tx.setGasBudget(100000000)
+
+    suiClient
       .signAndExecuteTransactionBlock({
-        signer: getKeypair(Player1_SECRET_KEY!),
+        signer: getKeypair(playerKey!),
         transactionBlock: tx,
         requestType: "WaitForLocalExecution",
         options: {
@@ -50,10 +104,11 @@ export const startHand = async ({
         },
       })
       .then((resp) => {
+        console.log(resp)
         const status = resp?.effects?.status.status;
         console.log("executed! status = ", status);
         if (status !== "success") {
-          throw new Error("HouseData not created");
+          throw new Error("Start hand not created");
         }
         if (status === "success") {
           const createdObjects = resp.objectChanges?.filter(
@@ -67,42 +122,30 @@ export const startHand = async ({
           }
           const { objectId: CardTableId } = createdCardTable;
           console.log({ CardTableId });
-          return CardTableId;
+          return {seed};
         }
       })
       .catch((err) => {
         console.error("Error = ", err);
         return undefined;
       });
-  };
-  
 
-// Package is on Testnet.
-const client = new SuiClient({
-	url: getFullnodeUrl('testnet'),
-});
-const Package = '<PACKAGE_ID>';
+      if (unsubscribe) unsubscribe();
+  }
 
-const MoveEventType = '<PACKAGE_ID>::<MODULE_NAME>::<METHOD_NAME>';
 
-console.log(
-	await client.getObject({
-		id: Package,
-		options: { showPreviousTransaction: true },
-	}),
-);
+  // If we are not player 0, we need to set up a listener to wait for the 
+  // playerid-1 starthandevent object.
+  if (player_id != 0) {
+    let unsubscribe = await suiClient.subscribeEvent({
+      filter: { MoveEventType: "StartHandEvent" },
+      onMessage: (event) => {
+        console.log('StartHandEvent', JSON.stringify(event, null, 2));
+        submitStartHand(event, unsubscribe);
+      },
+    });
+  } else {
+    submitStartHand(null, null);
+  }
 
-let unsubscribe = await client.subscribeEvent({
-	filter: { Package },
-	onMessage: (event) => {
-		console.log('subscribeEvent', JSON.stringify(event, null, 2));
-	},
-});
-
-process.on('SIGINT', async () => {
-	console.log('Interrupted...');
-	if (unsubscribe) {
-		await unsubscribe();
-		unsubscribe = undefined;
-	}
-});
+};

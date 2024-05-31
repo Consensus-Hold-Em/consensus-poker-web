@@ -36,7 +36,7 @@ export const joinTable = async ({
 
   return suiClient
     .signAndExecuteTransactionBlock({
-      signer: getKeypair(PLAYER2_SECRET_KEY!),
+      signer: getKeypair(playerKey!),
       transactionBlock: tx,
       requestType: "WaitForLocalExecution",
       options: {

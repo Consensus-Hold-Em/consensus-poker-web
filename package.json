@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "create-table": "env-cmd -f .env ts-node lib/scripts/00-createTable",
-    "join-table": "env-cmd -f .env ts-node lib/scripts/01-joinTable"
+    "join-table": "env-cmd -f .env ts-node lib/scripts/01-joinTable",
+    "new-hand": "env-cmd -f .env ts-node lib/scripts/02-newHand",
+    "start-hand": "env-cmd -f .env ts-node lib/scripts/03-startHand"
   },
   "dependencies": {
     "@mysten/enoki": "^0.3.3",
