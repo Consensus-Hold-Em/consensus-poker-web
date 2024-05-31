@@ -14,7 +14,7 @@ import { FindPlayerCard, FindPoolCard, GenPlayerKeys } from "../../protocol/play
 import { getPlayerId } from "../getPlayerId";
 import { readSuiBytes, readSuiString } from "./startHand";
 import { parseDeckFromJSON } from "./shuffleAndDecrypt";
-import { DeckReference } from "@/protocol/cards";
+import { DeckReference } from "../../protocol/cards";
 
 export interface SUIProps {
   suiClient: SuiClient;
