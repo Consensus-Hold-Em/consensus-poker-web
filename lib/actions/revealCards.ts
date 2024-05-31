@@ -273,9 +273,9 @@ export const showFlop = async ({
     console.log("Flop Cards: ");
 
     for (let i = 0; i < 3; i++) {
-      let flop_secrets = new Array<Uint8Array>();
+      let flop_secrets = new Array<Uint8Array>(3);
       for (const pid of flop.keys.keys()) {
-        flop_secrets.push(flop.keys[pid][i]);
+        flop_secrets[pid] = Uint8Array.from(flop.keys[pid][i]);
       }
       console.log("flop_secrets", flop_secrets);
       let idx = FindPoolCard(deck.d, flop_secrets, pubKeys, `Flop${i}`);
