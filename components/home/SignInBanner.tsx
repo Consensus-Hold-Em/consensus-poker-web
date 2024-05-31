@@ -31,10 +31,6 @@ export const SignInBanner = () => {
         },
       })
       .then((url) => {
-<<<<<<< HEAD
-        console.log("enokiFlow url", url);
-=======
->>>>>>> crypto
         setIsLoading(false);
         router.push(url);
       })

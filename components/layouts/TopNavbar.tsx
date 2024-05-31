@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { useZkLogin } from "@mysten/enoki/react";
 import { UserProfileMenu } from "../general/UserProfileMenu";
-import { Balance } from "../general/Balance";
+import { Balance } from "@/components/general/Balance";
 
 export const TopNavbar = () => {
   const { address } = useZkLogin();

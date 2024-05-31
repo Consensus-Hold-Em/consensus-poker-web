@@ -7,6 +7,7 @@ import { ChildrenProps } from "@/types/ChildrenProps";
 import { EnokiFlowProvider } from "@mysten/enoki/react";
 import React from "react";
 import { Toaster } from "react-hot-toast";
+import { TableContext, TableProvider } from "@/contexts/TableContext";
 
 export const ProvidersAndLayout = ({ children }: ChildrenProps) => {
   const _ = useRegisterServiceWorker();
@@ -14,6 +15,7 @@ export const ProvidersAndLayout = ({ children }: ChildrenProps) => {
   return (
     <EnokiFlowProvider apiKey={process.env.NEXT_PUBLIC_ENOKI_API_KEY!}>
       <BalanceProvider>
+        <TableProvider>
         <main
           className={`min-h-screen w-screen`}
           style={{
@@ -31,6 +33,7 @@ export const ProvidersAndLayout = ({ children }: ChildrenProps) => {
             }}
           />
         </main>
+        </TableProvider>
       </BalanceProvider>
     </EnokiFlowProvider>
   );

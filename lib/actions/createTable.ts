@@ -21,8 +21,10 @@ export const createTable = async ({
     tx.pure(.01 * Number(MIST_PER_SUI)),
   ]);
 
+  console.log("initialCoin = ", initialCoin);
+
   tx.moveCall({
-    target: `${PACKAGE_ADDRESS}::consensus_holdem::create_table`,
+    target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::consensus_holdem::create_table`,
     arguments: [
       initialCoin,
       tx.pure(25),
@@ -31,9 +33,15 @@ export const createTable = async ({
     ],
   });
 
+  console.log("tx.moveCall")
+  console.log({
+    PLAYER1_SECRET_KEY: process.env.NEXT_PUBLIC_PLAYER1_SECRET_KEY,
+    tx
+  });
+  console.log("getKeypair(process.env.NEXT_PUBLIC_PLAYER1_SECRET_KEY!)", getKeypair(process.env.NEXT_PUBLIC_PLAYER1_SECRET_KEY!))
   return suiClient
     .signAndExecuteTransactionBlock({
-      signer: getKeypair(PLAYER1_SECRET_KEY!),
+      signer: getKeypair(process.env.NEXT_PUBLIC_PLAYER1_SECRET_KEY!),
       transactionBlock: tx,
       requestType: "WaitForLocalExecution",
       options: {
@@ -42,7 +50,7 @@ export const createTable = async ({
       },
     })
     .then((resp) => {
-      console.log(resp)
+      console.log("resp123", resp)
       const status = resp?.effects?.status.status;
       console.log("executed! status = ", status);
       if (status !== "success") {
