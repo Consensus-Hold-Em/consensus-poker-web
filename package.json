@@ -28,6 +28,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
+    "fs": "0.0.1-security",
     "futoin-hkdf": "^1.5.3",
     "javascript-terminal": "^1.1.1",
     "jwt-decode": "^4.0.0",

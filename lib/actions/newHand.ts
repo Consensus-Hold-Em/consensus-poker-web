@@ -10,7 +10,6 @@ import { GenPlayerKeys } from "../../protocol/player";
 import { NewSeed, NewSeededRNG } from "../../protocol/random";
 import { keccak_256 } from "@noble/hashes/sha3";
 import { getPlayerId } from "../getPlayerId";
-import fs from 'fs';
 
 export interface SUIProps {
   suiClient: SuiClient;
@@ -35,14 +34,14 @@ export const newHand = async ({
     const card_table = await getCardTableObject(suiClient, cardTableId);
 
     // TODO: store seed in file here
-    fs.appendFileSync("./.env", `SEED${player_id}=${Buffer.from(seed).toString('base64')}\n`);
+    // fs.appendFileSync("./.env", `SEED${player_id}=${Buffer.from(seed).toString('base64')}\n`);
 
     const tx = new TransactionBlock();
 
     console.log(player_id, card_table.players[player_id])
   
     tx.moveCall({
-      target: `${PACKAGE_ADDRESS}::consensus_holdem::new_hand`,
+      target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::consensus_holdem::new_hand`,
       arguments: [
         tx.object(cardTableId),
         tx.pure(player_id),
@@ -81,7 +80,9 @@ export const newHand = async ({
           }
           const { objectId: CardTableId } = createdCardTable;
           console.log({ CardTableId });
-          return CardTableId;
+
+          // returns the seed
+          return Buffer.from(seed).toString('base64');
         }
       })
       .catch((err) => {

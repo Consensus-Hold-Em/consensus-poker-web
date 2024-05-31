@@ -9,7 +9,7 @@ import { use, useContext, useState, useEffect } from 'react';
 import { useTable } from '@/contexts/TableContext';
 import { Button } from './ui/button';
 
-export const CustomTerminal = () => {
+export const CustomTerminal = ({streamText}) => {
 
   const {currentTable} = useTable();
 
@@ -25,7 +25,8 @@ export const CustomTerminal = () => {
   const [autoTypeText, setAutoTypeText] = useState(''); // state to hold the auto type text
 
   // function to simulate typing
-  const simulateTyping = (text: string, delay = 200) => {
+  const simulateTyping = (text: string, delay = 50) => {
+    text += '\n'
     let index = 0;
     const typingInterval = setInterval(() => {
       if (index < text.length) {
@@ -39,8 +40,8 @@ export const CustomTerminal = () => {
 
   // simulate typing on component mount
   useEffect(() => {
-    // simulateTyping('Welcome to Homeless Holdem! Interact with the game using the terminal below.');
-  }, []);
+    simulateTyping(streamText);
+  }, [streamText]);
 
   
     return (

@@ -10,6 +10,7 @@ export interface SUIProps {
   suiClient: SuiClient;
   cardTableId: string;
   playerKey: string;
+  playerSeedKey: string;
 }
 
 export const joinTable = async ({
@@ -18,6 +19,8 @@ export const joinTable = async ({
   playerKey
 }: SUIProps): Promise<string | undefined> => {
   console.log("Joining CardTable...");
+  console.log({cardTableId,
+    playerKey});
   const tx = new TransactionBlock();
 
   const buyInCoin = tx.splitCoins(tx.gas, [
@@ -25,7 +28,7 @@ export const joinTable = async ({
   ]);
 
   tx.moveCall({
-    target: `${PACKAGE_ADDRESS}::consensus_holdem::join_table`,
+    target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::consensus_holdem::join_table`,
     arguments: [
       tx.object(cardTableId),
       buyInCoin,
@@ -33,7 +36,6 @@ export const joinTable = async ({
   });
 
   tx.setGasBudget(100000000)
-
   return suiClient
     .signAndExecuteTransactionBlock({
       signer: getKeypair(playerKey!),
