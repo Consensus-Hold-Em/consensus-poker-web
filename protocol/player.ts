@@ -116,9 +116,9 @@ export function StartHand(playerIndex: number, myKeys: PlayerKeys,
     return cards;
 }
 
-export function AssembleDeck(initialStates: InitialHandState[], 
+export function AssembleDeck(initialStates: InitialHandState, 
     rng: SeededRNG): EncryptedCard[] {
-    const numPlayers = initialStates.length;
+    const numPlayers = initialStates.Players!.length;
     const cards = InitCards(numPlayers, 52);
     var deck = new Array<EncryptedCard>(cards.length);
     for (const i of deck.keys()) {
@@ -127,16 +127,16 @@ export function AssembleDeck(initialStates: InitialHandState[],
 
     for (let i = 0; i < numPlayers; i++) {
         const pCard1Idx = i;
-        deck[pCard1Idx] = initialStates[i].Players![i][0];
+        deck[pCard1Idx] = initialStates.Players![i][0];
         const pCard2Idx = i + numPlayers + 1;
-        deck[pCard2Idx] = initialStates[i].Players![i][1];
+        deck[pCard2Idx] = initialStates.Players![i][1];
         // console.log("STATES " + i + '.' + pCard1Idx + '.' + pCard2Idx);
         // console.log(BytesToStr(PointToPlaintext(deck[pCard1Idx].C2)));
         // console.log(BytesToStr(PointToPlaintext(deck[pCard2Idx].C2)));
     }
 
     const firstFlopIdx = 2*numPlayers + 3;
-    const pool = initialStates[numPlayers-1];
+    const pool = initialStates;
     for (let i = 0; i < 3; i++) {
         deck[firstFlopIdx+i] = pool.Flop[i];
     }

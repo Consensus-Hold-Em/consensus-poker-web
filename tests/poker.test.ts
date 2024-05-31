@@ -85,7 +85,7 @@ describe('Crypto Tests', () => {
     // expect(c2Str).toEqual("Card");
 
     // Player 0 Assembles a deck, then every player shuffles and decrypts
-    var deck = AssembleDeck(hands, rng);
+    var deck = AssembleDeck(hands[hands.length-1], rng);
     // for (let i = 0; i < deck.length; i++) {
     //     console.log(i +":" + BytesToStr(PointToPlaintext(deck[i].C2)));
     // }

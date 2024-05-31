@@ -5,7 +5,19 @@ import { newHand } from "../actions/newHand";
 
 
 const runNewHand = async () => {
-  const CardTableId = await newHand({
+  await newHand({
+    suiClient: new SuiClient({ url: SUI_NETWORK }),
+    cardTableId: CARD_TABLE_ID,
+    playerKey: PLAYER1_SECRET_KEY
+  });
+
+  await newHand({
+    suiClient: new SuiClient({ url: SUI_NETWORK }),
+    cardTableId: CARD_TABLE_ID,
+    playerKey: PLAYER2_SECRET_KEY
+  });
+
+  await newHand({
     suiClient: new SuiClient({ url: SUI_NETWORK }),
     cardTableId: CARD_TABLE_ID,
     playerKey: PLAYER3_SECRET_KEY

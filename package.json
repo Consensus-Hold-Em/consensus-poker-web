@@ -10,7 +10,9 @@
     "create-table": "env-cmd -f .env ts-node lib/scripts/00-createTable",
     "join-table": "env-cmd -f .env ts-node lib/scripts/01-joinTable",
     "new-hand": "env-cmd -f .env ts-node lib/scripts/02-newHand",
-    "start-hand": "env-cmd -f .env ts-node lib/scripts/03-startHand"
+    "start-hand": "env-cmd -f .env ts-node lib/scripts/03-startHand",
+    "shuffle": "env-cmd -f .env ts-node lib/scripts/04-shuffleAndDecrypt",
+    "reveal-cards": "env-cmd -f .env ts-node lib/scripts/05-revealCards"
   },
   "dependencies": {
     "@mysten/enoki": "^0.3.3",

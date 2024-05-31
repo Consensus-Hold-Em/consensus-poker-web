@@ -18,21 +18,16 @@ export interface StartHandProps {
     suiClient: SuiClient;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-(BigInt.prototype as any).toJSON = function () {
-  return this.toString();
-};
-
-function readSuiString(element: number[]): string {
+export function readSuiString(element: number[]): string {
   return element.map(x => String.fromCharCode(x)).join('');
 }
 
-function readSuiBytes(element: number[]): Uint8Array {
+export function readSuiBytes(element: number[]): Uint8Array {
   const hexStr = readSuiString(element);
   return Uint8Array.from(Buffer.from(hexStr, 'hex'));
 }
 
-function handStateToJSON(hand: InitialHandState): string {
+export function handStateToJSON(hand: InitialHandState): string {
   let json = JSON.stringify(hand, (key, value) => {
     if (key == "In" || key == "C1" || key == "C2") {
       return value.toHex();
@@ -42,7 +37,7 @@ function handStateToJSON(hand: InitialHandState): string {
   return json;
 }
 
-function parseHandStateJSON(handJSON: string): InitialHandState {
+export function parseHandStateJSON(handJSON: string): InitialHandState {
   let hand: InitialHandState = JSON.parse(handJSON, (key, value) => {
     if (key == "In" || key == "C1" || key == "C2") {
       return ed25519.ExtendedPoint.fromHex(value);

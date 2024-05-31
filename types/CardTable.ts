@@ -12,7 +12,10 @@ export interface CardTable {
     current_pot: number;
     current_keys: number[][];
     round: number;
-    turn: number;
-    deck: EncryptedCard[];
+    player_turn: number;
+    deck: number[];
     hand_state: number[];
+    flop: number[];
+    turn: number[];
+    river: number[];
 }
