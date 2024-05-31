@@ -311,9 +311,37 @@ export default function Home() {
     {
       game?.started && game?.shuffled &&
 
+      
+
       <div className="flex flex-row items-center gap-4 my-6">
 
-        { <Button onClick={() => {
+
+      
+{        game.flopRevealed && 
+        <div className="flex items-center gap-1" >
+        {
+            game.flopCard ?
+              <img src={"/assets/cards/" + cardMapper[game.flopCard[0]] + ".png"} alt="backdesign" className="w-12 h-16"/> :
+              <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
+          }
+          {
+            game.flopCard ?
+              <img src={"/assets/cards/" + cardMapper[game.flopCard[1]] + ".png"} alt="backdesign" className="w-12 h-16"/> :
+              <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
+          }
+                    {
+            game.flopCard ?
+              <img src={"/assets/cards/" + cardMapper[game.flopCard[2]] + ".png"} alt="backdesign" className="w-12 h-16"/> :
+              <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
+          }
+        </div>}
+      
+
+
+        { 
+        
+        !game.flopRevealed &&
+        <Button onClick={() => {
 
           revealFlop({suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER1_SECRET_KEY!, playerSeedKey: players[0].seedKey}).then(async () => {
             await new Promise(resolve => setTimeout(resolve, 3000));
@@ -345,6 +373,12 @@ export default function Home() {
           Show Flop
         </Button>
         }
+
+        {/* {
+            players?.[1]?.cards?.card1 ?
+              <img src={"/assets/cards/" + cardMapper[players?.[1]?.cards?.card1] + ".png"} alt="backdesign" className="w-12 h-16"/> :
+              <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
+          } */}
 
         <Button>
           Show Turn
