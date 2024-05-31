@@ -53,6 +53,23 @@ export default function Home() {
           <h2>Table ID: <br/>{currentTable}</h2>
           }
       </div>
+
+      <div className="absolute top-[120px] left-2 rounded-lg bg-white p-2 text-xs">
+         <Button
+            onClick={() => {
+              setCurrentTable(null);
+              setPlayers([
+                { publicKey: getKeypair(process.env.NEXT_PUBLIC_PLAYER1_SECRET_KEY!).getPublicKey().toSuiPublicKey() },
+                { publicKey: getKeypair(process.env.NEXT_PUBLIC_PLAYER2_SECRET_KEY!).getPublicKey().toSuiPublicKey() },
+                { publicKey: getKeypair(process.env.NEXT_PUBLIC_PLAYER3_SECRET_KEY!).getPublicKey().toSuiPublicKey() },
+              ]);
+              setGame(null);
+              // window.location.reload();
+            }}
+         >
+            Restart Game (clear session cache)
+         </Button>
+      </div>
       
       
     <div 
