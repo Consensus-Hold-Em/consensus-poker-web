@@ -3,14 +3,6 @@ import Image from "next/image";
 
 import Backdesign from "@/public/assets/cards/backdesign_14.png";
 import { Button } from "@/components/ui/button";
-<<<<<<< Updated upstream
-export default function Home() {
-
-  
-  
-  return (
-    <div className="flex flex-col justify-start pt-[200px] items-center h-screen bg-gray-100 dark:bg-gray-900">
-=======
 import { useZkLogin } from "@mysten/enoki/react";
 import { useBalance } from "@/contexts/BalanceContext";
 import { SignInBanner } from "@/components/home/SignInBanner";
@@ -49,7 +41,6 @@ export default function Home() {
 
   return (
     <div className="h-full flex flex-col justify-evenly items-center">
->>>>>>> Stashed changes
     <div 
       className="flex flex-col relative w-[30vw] h-[30vw] max-w-[400px] max-h-[400px] rounded-full bg-[2097750] dark:bg-[#6366f1] shadow-lg flex items-center justify-center border-8 border-brown-500 border-opacity-50"
       // style={{

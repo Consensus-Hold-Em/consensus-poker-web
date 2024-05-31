@@ -21,27 +21,19 @@
     "@radix-ui/react-slot": "^1.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-<<<<<<< Updated upstream
     "dotenv": "^16.4.5",
     "futoin-hkdf": "^1.5.3",
-=======
     "javascript-terminal": "^1.1.1",
     "jwt-decode": "^4.0.0",
->>>>>>> Stashed changes
     "lucide-react": "^0.379.0",
     "next": "14.2.3",
     "next-themes": "^0.3.0",
-<<<<<<< Updated upstream
-    "react": "^18",
-    "react-dom": "^18",
-=======
     "partysocket": "1.0.1",
     "react": "^18.3.1",
     "react-dom": "^18",
     "react-hot-toast": "^2.4.1",
     "react-terminal": "^1.4.4",
     "react-terminal-component": "^1.5.0",
->>>>>>> Stashed changes
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -59,12 +51,8 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "ts-jest": "^29.1.4",
-<<<<<<< Updated upstream
     "ts-node": "^10.9.2",
     "typescript": "^5",
     "ws": "^8.17.0"
-=======
-    "typescript": "^5"
->>>>>>> Stashed changes
   }
 }
