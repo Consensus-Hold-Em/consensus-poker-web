@@ -8,7 +8,6 @@ import { EnokiFlowProvider } from "@mysten/enoki/react";
 import React from "react";
 import { Toaster } from "react-hot-toast";
 
-
 export const ProvidersAndLayout = ({ children }: ChildrenProps) => {
   const _ = useRegisterServiceWorker();
 
@@ -24,9 +23,7 @@ export const ProvidersAndLayout = ({ children }: ChildrenProps) => {
             backgroundPositionY: "top",
           }}
         >
-          
-            <LargeScreenLayout>{children}</LargeScreenLayout>
-          
+          <LargeScreenLayout>{children}</LargeScreenLayout>
           <Toaster
             position="bottom-center"
             toastOptions={{

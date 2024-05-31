@@ -1,3 +1,4 @@
+"use client";
 import { User } from "lucide-react";
 import Image from "next/image";
 
@@ -15,6 +16,13 @@ import {
 } from 'javascript-terminal';
 import { useRef, useState } from "react";
 export default function Home() {
+  const { address } = useZkLogin();
+  const { balance, handleRefreshBalance } = useBalance();
+  console.log({address, balance, handleRefreshBalance});
+
+  if (!address) {
+    return <SignInBanner />;
+  }
 
   
   const { address } = useZkLogin();
@@ -49,7 +57,7 @@ export default function Home() {
       //   backgroundPosition: 'center',
       // }}
       >
-      {Array.from({length: 6}, (_, i) => i + 1).map((number, index, arr) => (
+      {Array.from({length: 4}, (_, i) => i + 1).map((number, index, arr) => (
         <div
           key={index}
           style={{

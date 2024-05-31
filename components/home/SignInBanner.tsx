@@ -31,7 +31,10 @@ export const SignInBanner = () => {
         },
       })
       .then((url) => {
+<<<<<<< HEAD
         console.log("enokiFlow url", url);
+=======
+>>>>>>> crypto
         setIsLoading(false);
         router.push(url);
       })
@@ -49,7 +52,7 @@ export const SignInBanner = () => {
         <div className="flex flex-col space-y-[30px] items-center">
           <div className="flex flex-col space-y-[20px] items-center">
             <div className="font-[700] text-[20px] text-center">
-            Homeless Holdem`
+            Homeless Holdem
             </div>
             <div className="text-center text-opacity-90 text-[16px] text-[#4F4F4F]">
               Fair, decentralized, trustless poker which does not rely on a centralized house or oracle.
