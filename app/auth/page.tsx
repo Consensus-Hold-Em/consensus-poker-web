@@ -7,7 +7,7 @@ import { useEffect } from "react";
 
 const AuthPage = () => {
   const router = useRouter();
-  const { handled, state } = useAuthCallback();
+  const { handled } = useAuthCallback();
 
   useEffect(() => {
     if (handled) {
