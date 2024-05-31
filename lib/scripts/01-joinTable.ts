@@ -9,6 +9,3 @@ const initJoinTable = async (playerKey: string) => {
     playerKey: playerKey
   });
 };
-
-// initJoinTable(PLAYER2_SECRET_KEY);
-initJoinTable(PLAYER3_SECRET_KEY);

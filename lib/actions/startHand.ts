@@ -51,12 +51,14 @@ export function parseHandStateJSON(handJSON: string): InitialHandState {
 export const startHand = async ({
     suiClient,
     cardTableId,
-    playerKey
+    playerKey,
+    playerSeedKey,
 }: SUIProps) => {
   // Get public key from playerKey
   const player_id = await getPlayerId(suiClient, cardTableId, playerKey);
   const card_table = await getCardTableObject(suiClient, cardTableId);
-  
+  console.log("player_id", player_id);
+  console.log("card_table", card_table);
   let public_keys = new Array<ExtPointType>(card_table.current_keys.length);
   for (const i of card_table.current_keys.keys()) {
     console.log(card_table.current_keys[i]);
@@ -82,7 +84,7 @@ export const startHand = async ({
     //   }
     // }
     // Read seed, then create commitment
-    let seedb64 = process.env[`SEED${player_id}`] as string;
+    let seedb64 = playerSeedKey as string;
     let seed = new Uint8Array(Buffer.from(seedb64, 'base64'));
     console.log("SEED: " + seed);
     let commitment = keccak_256("Seed: " + seed);
@@ -105,7 +107,7 @@ export const startHand = async ({
 
     const tx = new TransactionBlock();
     tx.moveCall({
-      target: `${PACKAGE_ADDRESS}::consensus_holdem::start_hand`,
+      target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::consensus_holdem::start_hand`,
       arguments: [
         tx.object(cardTableId),
         tx.pure(player_id),
