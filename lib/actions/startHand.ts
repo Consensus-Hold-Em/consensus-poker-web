@@ -103,10 +103,10 @@ export const startHand = async ({
       rng
     );
 
-    console.log('d', public_keys[player_id])
-    console.log(public_keys[player_id].toRawBytes())
-
- 
+    // console.log('d', public_keys[player_id])
+    // console.log(public_keys[player_id].toRawBytes())
+    let handJSON = handStateToJSON(hand);
+    console.log(handJSON)
 
     const tx = new TransactionBlock();
     tx.moveCall({
@@ -115,7 +115,7 @@ export const startHand = async ({
         tx.object(cardTableId),
         tx.pure(player_id),
         tx.pure(Buffer.from(commitment).toString('hex')),
-        tx.pure(handStateToJSON(hand)),
+        tx.pure(handJSON),
       ],
     });
 

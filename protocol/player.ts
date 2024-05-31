@@ -8,7 +8,7 @@ import { ed25519 } from "@noble/curves/ed25519";
 
 export type InitialHandState = {
     PlayerID: number,
-    Player: EncryptedCard[]|null, // len of 2, null for other players
+    Players: EncryptedCard[][]|null,
     Flop: EncryptedCard[], // len of 3
     River: EncryptedCard,
     Turn: EncryptedCard
@@ -56,15 +56,18 @@ export function StartHand(playerIndex: number, myKeys: PlayerKeys,
     if (prevPlayerState) {
         cards = {
             PlayerID: playerIndex,
-            Player: Array<EncryptedCard>(2),
+            Players: new Array<Array<EncryptedCard>>(),
             Flop: prevPlayerState.Flop,
             River: prevPlayerState.River,
             Turn: prevPlayerState.Turn
         }
+        for (const p of prevPlayerState.Players!) {
+            cards.Players?.push(p);
+        }
     } else {
         cards = {
             PlayerID: playerIndex,
-            Player: Array<EncryptedCard>(2),
+            Players: new Array<Array<EncryptedCard>>(),
             Flop: Array<EncryptedCard>(
                 UnencryptedCard(CardNames.FlopCards[0], dummyRNG),
                 UnencryptedCard(CardNames.FlopCards[1], dummyRNG),
@@ -75,17 +78,18 @@ export function StartHand(playerIndex: number, myKeys: PlayerKeys,
         }
         
     }
+    cards.Players?.push(new Array<EncryptedCard>(2));
     const numPlayers = playerPubKeys.length;
 
     const emptyCardState = InitCards(numPlayers, 52);
 
     const p0CardIdx = playerIndex;
     const p0Card = MessageToPoint(StrToBytes(emptyCardState[p0CardIdx]), rng);
-    cards.Player![0] = EncryptPlayerCard(playerPubKeys, rng, p0Card, myKeys.myCards[0]);
+    cards.Players![playerIndex][0] = EncryptPlayerCard(playerPubKeys, rng, p0Card, myKeys.myCards[0]);
 
     const p1CardIdx = playerIndex + numPlayers + 1;
     const p1Card = MessageToPoint(StrToBytes(emptyCardState[p1CardIdx]), rng);
-    cards.Player![1] = EncryptPlayerCard(playerPubKeys, rng, p1Card, myKeys.myCards[1]);
+    cards.Players![playerIndex][1] = EncryptPlayerCard(playerPubKeys, rng, p1Card, myKeys.myCards[1]);
 
     for (const i of cards.Flop.keys()) {
         if (playerIndex == 0) {
@@ -123,9 +127,9 @@ export function AssembleDeck(initialStates: InitialHandState[],
 
     for (let i = 0; i < numPlayers; i++) {
         const pCard1Idx = i;
-        deck[pCard1Idx] = initialStates[i].Player![0];
+        deck[pCard1Idx] = initialStates[i].Players![i][0];
         const pCard2Idx = i + numPlayers + 1;
-        deck[pCard2Idx] = initialStates[i].Player![1];
+        deck[pCard2Idx] = initialStates[i].Players![i][1];
         // console.log("STATES " + i + '.' + pCard1Idx + '.' + pCard2Idx);
         // console.log(BytesToStr(PointToPlaintext(deck[pCard1Idx].C2)));
         // console.log(BytesToStr(PointToPlaintext(deck[pCard2Idx].C2)));
