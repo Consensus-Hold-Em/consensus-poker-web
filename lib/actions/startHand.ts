@@ -23,6 +23,35 @@ export interface StartHandProps {
   return this.toString();
 };
 
+function readSuiString(element: number[]): string {
+  return element.map(x => String.fromCharCode(x)).join('');
+}
+
+function readSuiBytes(element: number[]): Uint8Array {
+  const hexStr = readSuiString(element);
+  return Uint8Array.from(Buffer.from(hexStr, 'hex'));
+}
+
+function handStateToJSON(hand: InitialHandState): string {
+  let json = JSON.stringify(hand, (key, value) => {
+    if (key == "In" || key == "C1" || key == "C2") {
+      return value.toHex();
+    }
+    return value;
+  });
+  return json;
+}
+
+function parseHandStateJSON(handJSON: string): InitialHandState {
+  let hand: InitialHandState = JSON.parse(handJSON, (key, value) => {
+    if (key == "In" || key == "C1" || key == "C2") {
+      return ed25519.ExtendedPoint.fromHex(value);
+    }
+    return value;
+  });
+  return hand;
+}
+
 // startHand is called by each player, starting with player 0.
 export const startHand = async ({
     suiClient,
@@ -36,27 +65,27 @@ export const startHand = async ({
   let public_keys = new Array<ExtPointType>(card_table.current_keys.length);
   for (const i of card_table.current_keys.keys()) {
     console.log(card_table.current_keys[i]);
-    const hexStr = card_table.current_keys[i].map(x => String.fromCharCode(x)).join('').slice(2);
+    const hexStr = card_table.current_keys[i].map(x => String.fromCharCode(x)).join('');
     const keyBytes = Uint8Array.from(Buffer.from(hexStr, 'hex'));
     console.log(keyBytes);
     public_keys[i] = ed25519.ExtendedPoint.fromHex(keyBytes);
   }
   
-  const submitStartHand = (prev_hand_event: SuiEvent | null, unsubscribe: Unsubscribe | null) => {
+  const submitStartHand = (prev_hand: InitialHandState | null, unsubscribe: Unsubscribe | null) => {
     // parse SuiEvent into HandState
-    let prev_hand: InitialHandState | null = null;
-    if (prev_hand_event && player_id != 0) {
-      const prev_hand_json = prev_hand_event!.parsedJson as any
-      console.log(prev_hand_json);
-      const prev_player_id = prev_hand_json["player_id"] as number;
-      const prev_hand = prev_hand_json['hand_state'] as InitialHandState;
-      console.log(prev_hand);
+    // let prev_hand: InitialHandState | null = null;
+    // if (prev_hand_event && player_id != 0) {
+    //   const prev_hand_json = prev_hand_event!.parsedJson as any
+    //   console.log(prev_hand_json);
+    //   const prev_player_id = prev_hand_json["player_id"] as number;
+    //   const prev_hand = prev_hand_json['hand_state'] as InitialHandState;
+    //   console.log(prev_hand);
 
-      if (prev_player_id != (player_id - 1) ) {
-        console.log(`StartHand: ignoring prev_player: ${prev_player_id} for ${player_id}`);
-        return;
-      }
-    }
+    //   if (prev_player_id != (player_id - 1) ) {
+    //     console.log(`StartHand: ignoring prev_player: ${prev_player_id} for ${player_id}`);
+    //     return;
+    //   }
+    // }
     // Read seed, then create commitment
     let seedb64 = process.env[`SEED${player_id}`] as string;
     let seed = new Uint8Array(Buffer.from(seedb64, 'base64'));
@@ -85,9 +114,8 @@ export const startHand = async ({
       arguments: [
         tx.object(cardTableId),
         tx.pure(player_id),
-        tx.pure(public_keys[player_id].toHex()),
         tx.pure(Buffer.from(commitment).toString('hex')),
-        tx.pure(JSON.stringify(hand)),
+        tx.pure(handStateToJSON(hand)),
       ],
     });
 
@@ -112,7 +140,7 @@ export const startHand = async ({
         }
         if (status === "success") {
           const createdObjects = resp.objectChanges?.filter(
-            ({ type }) => type === "created"
+            ({ type }) => type === "mutated"
           ) as SuiObjectChangeCreated[];
           const createdCardTable = createdObjects.find(({ objectType }) =>
             objectType.endsWith("consensus_holdem::CardTable")
@@ -121,7 +149,6 @@ export const startHand = async ({
             throw new Error("CardTable not created");
           }
           const { objectId: CardTableId } = createdCardTable;
-          console.log({ CardTableId });
           return {seed};
         }
       })
@@ -136,14 +163,36 @@ export const startHand = async ({
 
   // If we are not player 0, we need to set up a listener to wait for the 
   // playerid-1 starthandevent object.
+  console.log(player_id)
   if (player_id != 0) {
-    let unsubscribe = await suiClient.subscribeEvent({
-      filter: { MoveEventType: "StartHandEvent" },
-      onMessage: (event) => {
-        console.log('StartHandEvent', JSON.stringify(event, null, 2));
-        submitStartHand(event, unsubscribe);
-      },
-    });
+    var prev_hand: InitialHandState | null = null;
+    while(prev_hand == null) {
+      const card_table = await getCardTableObject(suiClient, cardTableId);
+      let hand_state_str = readSuiString(card_table.hand_state);
+      console.log(hand_state_str);
+      prev_hand = parseHandStateJSON(hand_state_str)
+      console.log(prev_hand);
+      const prev_player_id = prev_hand.PlayerID as number;
+
+      if (prev_player_id == (player_id-1)) {
+        submitStartHand(prev_hand, null);
+      } else {
+        console.log(`StartHand: ignoring prev_player: ${prev_player_id} for ${player_id}`);
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 1_000))
+
+    }
+
+    // Note: doesn't work
+    // let unsubscribe = await suiClient.subscribeEvent({
+    //   filter: { MoveEventType: `${PACKAGE_ADDRESS}::consensus_holdem::StartHandEvent` },
+    //   // filter: { Package: `${PACKAGE_ADDRESS}` },
+    //   onMessage: (event) => {
+    //     console.log('StartHandEvent', JSON.stringify(event, null, 2));
+    //     submitStartHand(event, unsubscribe);
+    //   },
+    // });
   } else {
     submitStartHand(null, null);
   }

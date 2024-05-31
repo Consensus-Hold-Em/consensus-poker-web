@@ -7,6 +7,7 @@ import { generateKeyPair } from "crypto";
 import { ed25519 } from "@noble/curves/ed25519";
 
 export type InitialHandState = {
+    PlayerID: number,
     Player: EncryptedCard[]|null, // len of 2, null for other players
     Flop: EncryptedCard[], // len of 3
     River: EncryptedCard,
@@ -54,6 +55,7 @@ export function StartHand(playerIndex: number, myKeys: PlayerKeys,
     var cards: InitialHandState;
     if (prevPlayerState) {
         cards = {
+            PlayerID: playerIndex,
             Player: Array<EncryptedCard>(2),
             Flop: prevPlayerState.Flop,
             River: prevPlayerState.River,
@@ -61,6 +63,7 @@ export function StartHand(playerIndex: number, myKeys: PlayerKeys,
         }
     } else {
         cards = {
+            PlayerID: playerIndex,
             Player: Array<EncryptedCard>(2),
             Flop: Array<EncryptedCard>(
                 UnencryptedCard(CardNames.FlopCards[0], dummyRNG),

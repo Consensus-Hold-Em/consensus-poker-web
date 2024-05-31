@@ -8,7 +8,7 @@ const runNewHand = async () => {
   const CardTableId = await newHand({
     suiClient: new SuiClient({ url: SUI_NETWORK }),
     cardTableId: CARD_TABLE_ID,
-    playerKey: PLAYER2_SECRET_KEY
+    playerKey: PLAYER3_SECRET_KEY
   });
 };
 

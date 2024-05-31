@@ -1,5 +1,6 @@
 import { SuiClient, SuiMoveObject } from "@mysten/sui.js/client";
 import { CardTable } from "../../types/CardTable";
+import { InitialHandState } from "@/protocol/player";
 
 interface GetGameObjectProps {
   suiClient: SuiClient;

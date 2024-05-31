@@ -14,4 +14,5 @@ export interface CardTable {
     round: number;
     turn: number;
     deck: EncryptedCard[];
+    hand_state: number[];
 }
