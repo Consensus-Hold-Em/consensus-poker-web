@@ -42,6 +42,21 @@ export function parseRevealFromJSON(revealJSON: string) {
         if (key == "In" || key == "C1" || key == "C2") {
             return ed25519.ExtendedPoint.fromHex(value);
         }
+        if (key == "keys") {
+            var x = new Array<Array<Uint8Array>>(value.length);
+            for (const i of value.keys()) {
+              x[i] = new Array<Uint8Array>(value[i].length);
+              for (const j of value[i].keys()) {
+                var vals = new Array<number>(Object.keys(value[i][j]).length);
+                for (const k of Object.keys(value[i][j])) {
+                  let idx = parseInt(k);
+                  vals[idx] = value[i][j][k];
+                }
+                x[i][j] = new Uint8Array(Buffer.from(vals));
+              }
+            }
+            return x;
+        }
         return value;
     });
     return deck;
@@ -82,7 +97,7 @@ export const revealFlop = async (
     }
     mySecrets.keys[player_id] = flop_secrets;
 
-
+    console.log("mySecrets", mySecrets);
 
   tx.moveCall({
     target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::consensus_holdem::reveal_flop`,
@@ -272,16 +287,20 @@ export const showFlop = async ({
 
     console.log("Flop Cards: ");
 
+    console.log("flop keys", flop.keys);
+
+    let cards = new Array<string>();
     for (let i = 0; i < 3; i++) {
       let flop_secrets = new Array<Uint8Array>(3);
       for (const pid of flop.keys.keys()) {
-        flop_secrets[pid] = Uint8Array.from(flop.keys[pid][i]);
+        flop_secrets[pid] = flop.keys[pid][i];
       }
       console.log("flop_secrets", flop_secrets);
-      let idx = FindPoolCard(deck.d, flop_secrets, pubKeys, `Flop${i}`);
+      let idx = FindPoolCard(deck.d, flop_secrets, pubKeys, `Flop${i+1}`);
       console.log(reference[idx]);
-      return reference[idx];
+      cards.push(reference[idx]);
     }
+    return cards;
 }  
 
 export const showRiver = async (
