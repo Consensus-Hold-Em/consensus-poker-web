@@ -19,7 +19,10 @@ import { DeckReference } from "../../protocol/cards";
 =======
 import { DeckReference } from "@/protocol/cards";
 import { ExtPointType } from "@noble/curves/abstract/edwards";
+<<<<<<< HEAD
 >>>>>>> 1212d52 (Almost demo ready)
+=======
+>>>>>>> demo
 
 export interface SUIProps {
   suiClient: SuiClient;
@@ -45,6 +48,21 @@ export function parseRevealFromJSON(revealJSON: string) {
     let deck: Reveal = JSON.parse(revealJSON, (key, value) => {
         if (key == "In" || key == "C1" || key == "C2") {
             return ed25519.ExtendedPoint.fromHex(value);
+        }
+        if (key == "keys") {
+            var x = new Array<Array<Uint8Array>>(value.length);
+            for (const i of value.keys()) {
+              x[i] = new Array<Uint8Array>(value[i].length);
+              for (const j of value[i].keys()) {
+                var vals = new Array<number>(Object.keys(value[i][j]).length);
+                for (const k of Object.keys(value[i][j])) {
+                  let idx = parseInt(k);
+                  vals[idx] = value[i][j][k];
+                }
+                x[i][j] = new Uint8Array(Buffer.from(vals));
+              }
+            }
+            return x;
         }
         return value;
     });
@@ -86,7 +104,7 @@ export const revealFlop = async (
     }
     mySecrets.keys[player_id] = flop_secrets;
 
-
+    console.log("mySecrets", mySecrets);
 
   tx.moveCall({
     target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::consensus_holdem::reveal_flop`,
@@ -276,16 +294,26 @@ export const showFlop = async ({
 
     console.log("Flop Cards: ");
 
+    console.log("flop keys", flop.keys);
+
+    let cards = new Array<string>();
     for (let i = 0; i < 3; i++) {
-      let flop_secrets = new Array<Uint8Array>();
+      let flop_secrets = new Array<Uint8Array>(3);
       for (const pid of flop.keys.keys()) {
-        flop_secrets.push(flop.keys[pid][i]);
+        flop_secrets[pid] = flop.keys[pid][i];
       }
       console.log("flop_secrets", flop_secrets);
+<<<<<<< HEAD
       let idx = FindPoolCard(deck.d, flop_secrets, pubKeys, `Flop${i}`);
       console.log(reference[idx]);
       return reference[idx];
+=======
+      let idx = FindPoolCard(deck.d, flop_secrets, pubKeys, `Flop${i+1}`);
+      console.log(reference[idx]);
+      cards.push(reference[idx]);
+>>>>>>> demo
     }
+    return cards;
 }  
 
 export const showRiver = async (

@@ -26,7 +26,12 @@ export const CustomTerminal = ({streamText}) => {
 
   // function to simulate typing
   const simulateTyping = (text: string, delay = 50) => {
+<<<<<<< HEAD
     text += '\n'
+=======
+    setAutoTypeText(''); // clear the text within the emulator
+    text += ' '
+>>>>>>> demo
     let index = 0;
     const typingInterval = setInterval(() => {
       if (index < text.length) {
