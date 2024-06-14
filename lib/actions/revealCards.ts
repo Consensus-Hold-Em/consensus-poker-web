@@ -14,7 +14,12 @@ import { FindPlayerCard, FindPoolCard, GenPlayerKeys } from "../../protocol/play
 import { getPlayerId } from "../getPlayerId";
 import { readSuiBytes, readSuiString } from "./startHand";
 import { parseDeckFromJSON } from "./shuffleAndDecrypt";
+<<<<<<< HEAD
 import { DeckReference } from "../../protocol/cards";
+=======
+import { DeckReference } from "@/protocol/cards";
+import { ExtPointType } from "@noble/curves/abstract/edwards";
+>>>>>>> 1212d52 (Almost demo ready)
 
 export interface SUIProps {
   suiClient: SuiClient;
@@ -48,18 +53,19 @@ export function parseRevealFromJSON(revealJSON: string) {
 
 
 export const revealFlop = async (
-  suiClient: SuiClient,
-  cardTableId: string,
-  playerKey: string
-) => {
+  {
+  suiClient,
+  cardTableId,
+  playerKey,
+  playerSeedKey,
+}) => {
   const player_id = await getPlayerId(suiClient, cardTableId, playerKey);
   const card_table = await getCardTableObject(suiClient, cardTableId);
   console.log("Revealing Flop...");
   const tx = new TransactionBlock();
 
     // Read seed, then create commitment
-    let seedb64 = process.env[`SEED${player_id}`] as string;
-    let seed = new Uint8Array(Buffer.from(seedb64, 'base64'));
+    let seed = new Uint8Array(Buffer.from(playerSeedKey, 'base64'));
     console.log("SEED: " + seed);
     let rng = NewSeededRNG(seed);
     let player_keys = GenPlayerKeys(rng);
@@ -73,6 +79,7 @@ export const revealFlop = async (
 
     if (player_id != 0) {
         let curState = parseRevealFromJSON(readSuiString(card_table.flop));
+        console.log("curState", curState);
         for (const i of curState.keys.keys()) {
             mySecrets.keys[i] = curState.keys[i];
         }
@@ -82,7 +89,7 @@ export const revealFlop = async (
 
 
   tx.moveCall({
-    target: `${PACKAGE_ADDRESS}::consensus_holdem::reveal_flop`,
+    target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::consensus_holdem::reveal_flop`,
     arguments: [
       tx.object(cardTableId),
       tx.pure(revealToJSON(mySecrets))
@@ -91,7 +98,7 @@ export const revealFlop = async (
 
   return suiClient
     .signAndExecuteTransactionBlock({
-      signer: getKeypair(PLAYER1_SECRET_KEY!),
+      signer: getKeypair(playerKey!),
       transactionBlock: tx,
       requestType: "WaitForLocalExecution",
       options: {
@@ -147,7 +154,7 @@ export const revealTurn = async (
     
 
     tx.moveCall({
-      target: `${PACKAGE_ADDRESS}::consensus_holdem::reveal_turn`,
+      target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::consensus_holdem::reveal_turn`,
       arguments: [
         tx.object(cardTableId),
         tx.pure(revealToJSON(mySecrets))
@@ -212,7 +219,7 @@ export const revealRiver = async (
     
   
     tx.moveCall({
-      target: `${PACKAGE_ADDRESS}::consensus_holdem::reveal_river`,
+      target: `${process.env.NEXT_PUBLIC_PACKAGE_ADDRESS}::consensus_holdem::reveal_river`,
       arguments: [
         tx.object(cardTableId),
         tx.pure(revealToJSON(mySecrets))
@@ -244,16 +251,26 @@ export const revealRiver = async (
   };
 
 
-export const showFlop = async (
-    suiClient: SuiClient,
-    cardTableId: string,
-) => {
+export const showFlop = async ({
+    suiClient,
+    cardTableId,
+}) => {
     const card_table = await getCardTableObject(suiClient, cardTableId);
 
     let flop = parseRevealFromJSON(readSuiString(card_table.flop));
     let deck = parseDeckFromJSON(readSuiString(card_table.deck));
-    let pubkeys = card_table.current_keys.map(
-      x => ed25519.ExtendedPoint.fromHex(readSuiBytes(x)));
+
+    
+    let pubKeys = new Array<ExtPointType>(card_table.current_keys.length);
+    for (const i of card_table.current_keys.keys()) {
+      console.log(card_table.current_keys[i]);
+      const hexStr = card_table.current_keys[i].map(x => String.fromCharCode(x)).join('');
+      const keyBytes = Uint8Array.from(Buffer.from(hexStr, 'hex'));
+      console.log("keyBytes", keyBytes);
+      pubKeys[i] = ed25519.ExtendedPoint.fromHex(keyBytes);
+    }
+
+    console.log("PUBKEYS: ", pubKeys)
 
     let reference = DeckReference();
 
@@ -264,8 +281,10 @@ export const showFlop = async (
       for (const pid of flop.keys.keys()) {
         flop_secrets.push(flop.keys[pid][i]);
       }
-      let idx = FindPoolCard(deck.d, flop_secrets, pubkeys, `Flop${i}`);
+      console.log("flop_secrets", flop_secrets);
+      let idx = FindPoolCard(deck.d, flop_secrets, pubKeys, `Flop${i}`);
       console.log(reference[idx]);
+      return reference[idx];
     }
 }  
 
@@ -316,16 +335,23 @@ export const showTurn = async (
 }  
 
 
-export const showCards = async (
-  suiClient: SuiClient,
-  cardTableId: string,
-  playerKey: string
-) => {
+export const showCards = async ({
+  suiClient,
+  cardTableId,
+  playerKey,
+  playerSeedKey,
+}) => {
+  console.log({
+    suiClient,
+    cardTableId,
+
+    playerKey,
+    playerSeedKey,
+  })
   const player_id = await getPlayerId(suiClient, cardTableId, playerKey);
   const card_table = await getCardTableObject(suiClient, cardTableId);
 
-  let seedb64 = process.env[`SEED${player_id}`] as string;
-  let seed = new Uint8Array(Buffer.from(seedb64, 'base64'));
+  let seed = new Uint8Array(Buffer.from(playerSeedKey, 'base64'));
   console.log("SEED: " + seed);
   let rng = NewSeededRNG(seed);
   let player_keys = GenPlayerKeys(rng);
@@ -340,6 +366,8 @@ export const showCards = async (
 
   let idx1 = FindPlayerCard(deck.d, player_keys.myCards[0], `P${player_id}Card1`);
   let idx2 = FindPlayerCard(deck.d, player_keys.myCards[1], `P${player_id}Card2`);
-  console.log(reference[idx1]);
-  console.log(reference[idx2]);
+  return {
+    card1: reference[idx1],
+    card2: reference[idx2]
+  }
 }

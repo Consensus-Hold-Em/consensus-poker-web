@@ -11,16 +11,16 @@ import { CustomTerminal } from "@/components/custom-terminal";
 import { useTable } from "@/contexts/TableContext";
 import { useSui } from "@/hooks/useSui";
 import { createTable } from "@/lib/actions/createTable";
-<<<<<<< HEAD
-
-export default function Home() {
-  const { address } = useZkLogin();
-
-=======
 import { getKeypair } from "@/lib/keypair/getKeyPair";
 import { joinTable } from "@/lib/actions/joinTable";
 import { newHand } from "@/lib/actions/newHand";
 import { startHand } from "@/lib/actions/startHand";
+import { shuffleAndDecrypt } from "@/lib/actions/shuffleAndDecrypt";
+import { useBalance } from "@/contexts/BalanceContext";
+import { useState } from "react";
+import { FindPlayerCard } from "@/protocol/player";
+import { revealFlop, showCards, showFlop } from "@/lib/actions/revealCards";
+import { cardMapper } from "@/helpers/cards";
 export default function Home() {
   const { address } = useZkLogin();
 
@@ -28,7 +28,6 @@ export default function Home() {
 
   const [streamText, setStreamText] = useState('');
   
->>>>>>> 9a1f93a (implementing on chain methods)
   if (!address) {
     return <SignInBanner />;
   }
@@ -38,86 +37,13 @@ export default function Home() {
   }
   // Sui client hook
   const { suiClient } = useSui();
-<<<<<<< HEAD
-  //table hook
-  const { currentTable, setCurrentTable } = useTable();
-
-  return (
-    <div className="h-full flex flex-col justify-evenly items-center">
-      {/* Create table button */}
-      {!currentTable || currentTable === "null" ? (
-        <Button
-          onClick={() => {
-            createTable({ suiClient })
-              .then((tableId) => {
-                setCurrentTable(tableId);
-              })
-              .catch((err) => alert(err));
-          }}
-        >
-          Create Table
-        </Button>
-      ) : (
-        <h2>{currentTable}</h2>
-      )}
-
-      {/* Circle Container for poker table */}
-      <div className="flex flex-col relative w-[30vw] h-[30vw] max-w-[400px] max-h-[400px] rounded-full bg-[2097750] dark:bg-[#6366f1] shadow-lg flex items-center justify-center border-8 border-brown-500 border-opacity-50">
-        {Array.from({ length: 4 }, (_, i) => i + 1).map(
-          (number, index, arr) => (
-            <div
-              key={index}
-              style={{
-                position: "absolute",
-                transform: `rotate(${
-                  index * (180 / arr.length) - 160
-                }deg) translate(180px)`,
-                transformOrigin: "center",
-              }}
-            >
-              {/* User icon */}
-              <div className="flex items-center gap-2">
-                <User
-                  className="h-20 w-20"
-                  style={{
-                    transform: `rotate(${
-                      -index * (180 / arr.length) + 160
-                    }deg)`,
-                  }}
-                />
-
-                <div
-                  className="flex items-center gap-1"
-                  style={{
-                    transform: `rotate(${
-                      -index * (180 / arr.length) + 160
-                    }deg)`,
-                  }}
-                >
-                  {/* Back side cards */}
-                  <Image
-                    src={Backdesign}
-                    alt="backdesign"
-                    className="w-12 h-16"
-                  />
-                  <Image
-                    src={Backdesign}
-                    alt="backdesign"
-                    className="w-12 h-16"
-                  />
-                </div>
-              </div>
-            </div>
-          )
-        )}
-      </div>
-      
-      {/* React terminal component */}
-      <CustomTerminal />
-    </div>
-=======
   const {currentTable, setCurrentTable, players, setPlayers, game, setGame} = useTable();
   
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [player1Status, setPlayer1Status] = useState('not joined');
+  const [player2Status, setPlayer2Status] = useState('not joined');
+  const [player3Status, setPlayer3Status] = useState('not joined');
+
   return (
     <div className="h-full flex flex-col justify-evenly items-center">
        <div className="absolute top-[80px] left-2 rounded-lg bg-white p-2 text-xs">
@@ -146,13 +72,37 @@ export default function Home() {
         <User className="h-20 w-20"/>
         
         <div className="flex items-center gap-1" >
-          <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
-          <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
+          {
+            players?.[0]?.cards?.card1 ?
+              <img src={"/assets/cards/" + cardMapper[players?.[0]?.cards?.card1] + ".png"} alt="backdesign" className="w-12 h-16"/> :
+              <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
+          }
+          {
+            players?.[0]?.cards?.card2 ?
+              <img src={"/assets/cards/" + cardMapper[players?.[0]?.cards?.card2] + ".png"} alt="backdesign" className="w-12 h-16"/> :
+              <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
+          }
+        
         </div>
         {
           currentTable && currentTable !== "null" && <div className="rounded-lg bg-white p-2 text-xs">
             <span className="font-semibold">Player 1: </span>
             {players?.[0]?.publicKey}</div>
+        }
+        {
+          game?.shuffled && !players[0].revealedCards && <Button onClick={() => {
+            console.log('show cards', {suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER1_SECRET_KEY!, playerSeedKey: players?.[0].seedKey})
+            showCards({suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER1_SECRET_KEY!, playerSeedKey: players?.[0].seedKey}).then( (cards) => {
+              let newPlayers = [...players];
+              newPlayers[0].cards = cards;
+              newPlayers[0].revealedCards = true;
+              setPlayers(newPlayers);
+              console.log('cards player 1', cards);
+            }).catch((err) => {alert(err)});
+            setStreamText("Player 1 cards revealed. ");
+          }}>
+            Reveal Cards
+          </Button> 
         }
         
       </div>
@@ -160,8 +110,17 @@ export default function Home() {
         <User className="h-20 w-20"/>
         
         <div className="flex items-center gap-1" >
-          <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
-          <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
+          {
+            players?.[1]?.cards?.card1 ?
+              <img src={"/assets/cards/" + cardMapper[players?.[1]?.cards?.card1] + ".png"} alt="backdesign" className="w-12 h-16"/> :
+              <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
+          }
+          {
+            players?.[1]?.cards?.card2 ?
+              <img src={"/assets/cards/" + cardMapper[players?.[1]?.cards?.card2] + ".png"} alt="backdesign" className="w-12 h-16"/> :
+              <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
+          }
+        
         </div>
         {
           currentTable && currentTable !== "null" && <div className="rounded-lg bg-white p-2 text-xs">
@@ -181,14 +140,37 @@ export default function Home() {
             Join Table
           </Button> : <div>Player 2 in Table</div>
         }
+         {
+          game?.shuffled && !players[1].revealedCards && <Button onClick={() => {
+            console.log('show cards', {suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER2_SECRET_KEY!, playerSeedKey: players?.[1].seedKey})
+            showCards({suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER2_SECRET_KEY!, playerSeedKey: players?.[1].seedKey}).then( (cards) => {
+              let newPlayers = [...players];
+              newPlayers[1].cards = cards;
+              newPlayers[1].revealedCards = true;
+              setPlayers(newPlayers);
+              console.log('cards player 2', cards);
+            }).catch((err) => {alert(err)});
+            setStreamText("Player 2 cards revealed. ");
+          }}>
+            Reveal Cards
+          </Button> 
+        }
         
       </div>
       <div className="flex items-center gap-4">
         <User className="h-20 w-20"/>
         
         <div className="flex items-center gap-1" >
-          <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
-          <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
+        {
+            players?.[2]?.cards?.card1 ?
+              <img src={"/assets/cards/" + cardMapper[players?.[2]?.cards?.card1] + ".png"} alt="backdesign" className="w-12 h-16"/> :
+              <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
+          }
+          {
+            players?.[2]?.cards?.card2 ?
+              <img src={"/assets/cards/" + cardMapper[players?.[2]?.cards?.card2] + ".png"} alt="backdesign" className="w-12 h-16"/> :
+              <Image src={Backdesign} alt="backdesign" className="w-12 h-16"/>
+          }
         </div>
         {
           currentTable && currentTable !== "null" && 
@@ -203,11 +185,31 @@ export default function Home() {
             const newPlayers = [...players];
             newPlayers[2].joined = true
             setPlayers(newPlayers);
-            setStreamText("Player 3 joined the table. ");
+            
+            setStreamText("Player 2 joined the table. ");
           }}>
             Join Table
           </Button> : <div>Player 3 in Table</div>
         }
+
+
+
+      {
+          game?.shuffled && !players[2].revealedCards && <Button onClick={() => {
+            console.log('show cards', {suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER3_SECRET_KEY!, playerSeedKey: players?.[2].seedKey})
+            showCards({suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER3_SECRET_KEY!, playerSeedKey: players?.[2].seedKey}).then( (cards) => {
+              let newPlayers = [...players];
+              newPlayers[2].cards = cards;
+              newPlayers[2].revealedCards = true;
+              setPlayers(newPlayers);
+              console.log('cards player 3', cards);
+            }).catch((err) => {alert(err)});
+            setStreamText("Player 3 cards revealed. ");
+          }}>
+            Reveal Cards
+          </Button> 
+        }
+
             
           </>
         }
@@ -262,23 +264,23 @@ export default function Home() {
       >Start Game</Button>}
 
 
-      {
-        game?.started && !game?.shuffle && <Button onClick={() => {
+{
+        game?.started && !game?.shuffled && <Button onClick={() => {
 
-          startHand({suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER1_SECRET_KEY!, playerSeedKey: players[0].seedKey}).then(async () => {
+          shuffleAndDecrypt({suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER1_SECRET_KEY!, playerSeedKey: players[0].seedKey}).then(async () => {
             await new Promise(resolve => setTimeout(resolve, 4000));
-            setStreamText("Player 1 Start Hand Initiated.");
-            console.log("start hand 1")
-            startHand({suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER2_SECRET_KEY!, playerSeedKey: players[1].seedKey}).then(async () => {
+            setStreamText("Player 2 Shuffle Success.");
+            console.log("shuffle hand 1")
+            shuffleAndDecrypt({suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER2_SECRET_KEY!, playerSeedKey: players[1].seedKey}).then(async () => {
               await new Promise(resolve => setTimeout(resolve, 4000));
-              setStreamText("Player 2 Start Hand Initiated.");
-              console.log("start hand 2")
-              startHand({suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER3_SECRET_KEY!, playerSeedKey: players[2].seedKey}).then(async () => {
+              setStreamText("Player 2 Shuffle Success.");
+              console.log("shuffle hand 2")
+              shuffleAndDecrypt({suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER3_SECRET_KEY!, playerSeedKey: players[2].seedKey}).then(async () => {
                 await new Promise(resolve => setTimeout(resolve, 4000));
-                setStreamText("Player 3 Start Hand Initiated.");
-                console.log("start hand 3")
-
-                setGame({...game, started: true});
+                setStreamText("Player 3 Shuffle Success.");
+                // FindPlayerCard()
+                console.log("shuffle hand 3")
+                setGame({...game, shuffled: true});
               });
             });
           
@@ -287,16 +289,60 @@ export default function Home() {
         }}>Shuffle and Decrypt</Button>
       }
 
-      
-
-
-
     </div>
+
+    {
+      game?.started && game?.shuffled &&
+
+      <div className="flex flex-row items-center gap-4 my-6">
+
+        { <Button onClick={() => {
+
+          revealFlop({suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER1_SECRET_KEY!, playerSeedKey: players[0].seedKey}).then(async () => {
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            setStreamText("Player 1 Reveal Flop Success.");
+            console.log("reveal flop 1")
+            revealFlop({suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER2_SECRET_KEY!, playerSeedKey: players[1].seedKey}).then(async () => {
+              await new Promise(resolve => setTimeout(resolve, 3000));
+              setStreamText("Player 2 Reveal Flop Success.");
+              console.log("reveal flop 2")
+              revealFlop({suiClient, cardTableId: currentTable, playerKey: process.env.NEXT_PUBLIC_PLAYER3_SECRET_KEY!, playerSeedKey: players[2].seedKey}).then(async () => {
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                setStreamText("Player 3 Reveal Flop Success.");
+                console.log("reveal flop 3")
+
+                showFlop({suiClient, cardTableId: currentTable}).then(async (flopCard) => {
+
+                  console.log("flopCard", flopCard);
+                  setGame({...game, shuffled: true, flopRevealed: true, flopCard: flopCard});
+
+
+
+
+                });
+              });
+            });
+          })  
+
+        }}>
+          Show Flop
+        </Button>
+        }
+
+        <Button>
+          Show Turn
+        </Button>
+
+        <Button>
+          Show River
+        </Button>
+      
+      </div>
+    }
 
     
     
     <CustomTerminal streamText={streamText} />
   </div>
->>>>>>> 9a1f93a (implementing on chain methods)
   );
 }

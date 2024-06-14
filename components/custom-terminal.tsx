@@ -46,7 +46,7 @@ export const CustomTerminal = ({streamText}) => {
   
     return (
         <div className="bottom-0 w-full h-[220px]">
-        <div className="flex flex-row gap-2 items-center bg-white p-2 rounded-t-lg">
+        {/* <div className="flex flex-row gap-2 items-center bg-white p-2 rounded-t-lg">
           <div className="text-lg">Actions: </div>
           {
             !currentTable &&  <>
@@ -54,14 +54,8 @@ export const CustomTerminal = ({streamText}) => {
               <Button>create table</Button>
             </>
           }
-          {/* <Button>DEAL</Button>
-          <Button>CHECK</Button>
-          <Button>CALL</Button>
-          <Button>RAISE</Button>
-          <Button>FOLD</Button>
-          <Button>ALL-IN</Button>
-          <Button>HELP</Button> */}
-        </div>
+      
+        </div> */}
       <ReactTerminal
         emulatorState={emulatorState}
         inputStr={autoTypeText} // use the auto type text as input
