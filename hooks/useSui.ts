@@ -19,7 +19,9 @@ export const useSui = () => {
     transactionBlock,
     options,
   }: EnokiSponsorExecuteProps) => {
+    // @ts-ignore
     return enokiFlow
+    // @ts-ignore
       .sponsorAndExecuteTransactionBlock({
         network: process.env.NEXT_PUBLIC_SUI_NETWORK?.includes("testnet")
           ? "testnet"

@@ -6,23 +6,24 @@ import { revealFlop, revealRiver, revealTurn, showFlop, showRiver, showTurn } fr
 const waitTime = 4_000
 
 const revealCards = async () => {
-  await revealFlop(
-    new SuiClient({ transport: new SuiHTTPTransport({ url: SUI_NETWORK, WebSocketConstructor: WebSocket as never,  }) }),
-    CARD_TABLE_ID,
-    PLAYER1_SECRET_KEY
+  await revealFlop({
+    suiClient: new SuiClient({ transport: new SuiHTTPTransport({ url: SUI_NETWORK, WebSocketConstructor: WebSocket as never,  }) }),
+    cardTableId: CARD_TABLE_ID,
+    playerKey: PLAYER1_SECRET_KEY
+  });
+  await new Promise(resolve => setTimeout(resolve, waitTime))
+  await revealFlop({
+    suiClient: new SuiClient({ transport: new SuiHTTPTransport({ url: SUI_NETWORK, WebSocketConstructor: WebSocket as never,  }) }),
+    cardTableId: CARD_TABLE_ID,
+    playerKey: PLAYER2_SECRET_KEY
+  }  
   );
   await new Promise(resolve => setTimeout(resolve, waitTime))
-  await revealFlop(
-    new SuiClient({ transport: new SuiHTTPTransport({ url: SUI_NETWORK, WebSocketConstructor: WebSocket as never,  }) }),
-    CARD_TABLE_ID,
-    PLAYER2_SECRET_KEY
-  );
-  await new Promise(resolve => setTimeout(resolve, waitTime))
-  await revealFlop(
-    new SuiClient({ transport: new SuiHTTPTransport({ url: SUI_NETWORK, WebSocketConstructor: WebSocket as never,  }) }),
-    CARD_TABLE_ID,
-    PLAYER3_SECRET_KEY
-  );
+  await revealFlop({
+    suiClient: new SuiClient({ transport: new SuiHTTPTransport({ url: SUI_NETWORK, WebSocketConstructor: WebSocket as never,  }) }),
+    cardTableId: CARD_TABLE_ID,
+    playerKey: PLAYER3_SECRET_KEY
+  });
   await new Promise(resolve => setTimeout(resolve, waitTime))
 
   await revealTurn(

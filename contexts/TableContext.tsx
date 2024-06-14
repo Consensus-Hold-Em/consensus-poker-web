@@ -4,7 +4,7 @@ interface TableContextProps {
   currentTable: any;
   setCurrentTable: (table: any) => void;
   players: any;
-  setPlayers: (players: string[]) => void;
+  setPlayers: (players: any[]) => void;
   game: any;
   setGame: (game: any) => void;
 }
@@ -26,33 +26,47 @@ export const TableContext = createContext<TableContextProps>({
 
 export const TableProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentTable, setCurrentTable] = useState(() => {
-    return sessionStorage.getItem('currentTable') || null;
+
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('currentTable') || null;
+    }
+    return null;
   });
 
   const [players, setPlayers] = useState(() => {
-    const storedPlayers = sessionStorage.getItem('players');
-    return storedPlayers ? JSON.parse(storedPlayers) : [
-        { publicKey: getKeypair(process.env.NEXT_PUBLIC_PLAYER1_SECRET_KEY!).getPublicKey().toSuiPublicKey() },
-        { publicKey: getKeypair(process.env.NEXT_PUBLIC_PLAYER2_SECRET_KEY!).getPublicKey().toSuiPublicKey() },
-        { publicKey: getKeypair(process.env.NEXT_PUBLIC_PLAYER3_SECRET_KEY!).getPublicKey().toSuiPublicKey() },
-    ];
+    if (typeof window !== 'undefined') {
+      const storedPlayers = sessionStorage.getItem('players');
+      return storedPlayers ? JSON.parse(storedPlayers) : [
+          { publicKey: getKeypair(process.env.NEXT_PUBLIC_PLAYER1_SECRET_KEY!).getPublicKey().toSuiPublicKey() },
+          { publicKey: getKeypair(process.env.NEXT_PUBLIC_PLAYER2_SECRET_KEY!).getPublicKey().toSuiPublicKey() },
+          { publicKey: getKeypair(process.env.NEXT_PUBLIC_PLAYER3_SECRET_KEY!).getPublicKey().toSuiPublicKey() },
+      ];
+    }
   });
 
   const [game, setGame] = useState(() => {
+    if (typeof window !== 'undefined') {
     const storedGame = sessionStorage.getItem('game');
     return storedGame ? JSON.parse(storedGame) : null;
+    }
   });
 
   useEffect(() => {
-    sessionStorage.setItem('currentTable', currentTable);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('currentTable', currentTable);
+    }
   }, [currentTable]);
 
   useEffect(() => {
-    sessionStorage.setItem('players', JSON.stringify(players));
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('players', JSON.stringify(players));
+    }
   }, [players]);
 
   useEffect(() => {
-    sessionStorage.setItem('game', JSON.stringify(game));
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('game', JSON.stringify(game));
+    }
   }, [game]);
 
   return (

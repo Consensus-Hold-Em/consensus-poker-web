@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
+
+
 interface SendNotificationProps {
   title: string;
   body?: string;
   url?: string;
-  actions?: NotificationAction[];
+  actions?: any[];
 }
 
 export const useNotifications = () => {

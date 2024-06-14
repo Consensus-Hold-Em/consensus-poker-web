@@ -10,7 +10,7 @@ export interface SUIProps {
   suiClient: SuiClient;
   cardTableId: string;
   playerKey: string;
-  playerSeedKey: string;
+  playerSeedKey?: string;
 }
 
 export const joinTable = async ({

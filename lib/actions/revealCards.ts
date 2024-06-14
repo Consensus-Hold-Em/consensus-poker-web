@@ -14,15 +14,8 @@ import { FindPlayerCard, FindPoolCard, GenPlayerKeys } from "../../protocol/play
 import { getPlayerId } from "../getPlayerId";
 import { readSuiBytes, readSuiString } from "./startHand";
 import { parseDeckFromJSON } from "./shuffleAndDecrypt";
-<<<<<<< HEAD
-import { DeckReference } from "../../protocol/cards";
-=======
 import { DeckReference } from "@/protocol/cards";
 import { ExtPointType } from "@noble/curves/abstract/edwards";
-<<<<<<< HEAD
->>>>>>> 1212d52 (Almost demo ready)
-=======
->>>>>>> demo
 
 export interface SUIProps {
   suiClient: SuiClient;
@@ -76,7 +69,7 @@ export const revealFlop = async (
   cardTableId,
   playerKey,
   playerSeedKey,
-}) => {
+}: any) => {
   const player_id = await getPlayerId(suiClient, cardTableId, playerKey);
   const card_table = await getCardTableObject(suiClient, cardTableId);
   console.log("Revealing Flop...");
@@ -269,10 +262,10 @@ export const revealRiver = async (
   };
 
 
-export const showFlop = async ({
+export const showFlop = async (
     suiClient,
     cardTableId,
-}) => {
+) => {
     const card_table = await getCardTableObject(suiClient, cardTableId);
 
     let flop = parseRevealFromJSON(readSuiString(card_table.flop));
@@ -303,15 +296,10 @@ export const showFlop = async ({
         flop_secrets[pid] = flop.keys[pid][i];
       }
       console.log("flop_secrets", flop_secrets);
-<<<<<<< HEAD
-      let idx = FindPoolCard(deck.d, flop_secrets, pubKeys, `Flop${i}`);
-      console.log(reference[idx]);
-      return reference[idx];
-=======
       let idx = FindPoolCard(deck.d, flop_secrets, pubKeys, `Flop${i+1}`);
+      // let idx = FindPoolCard(deck.d, flop_secrets, pubKeys, `Flop${i+1}`);
       console.log(reference[idx]);
       cards.push(reference[idx]);
->>>>>>> demo
     }
     return cards;
 }  

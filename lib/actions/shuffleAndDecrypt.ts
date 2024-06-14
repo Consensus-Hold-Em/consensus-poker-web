@@ -43,7 +43,7 @@ export interface SUIProps {
     suiClient: SuiClient;
     cardTableId: string;
     playerKey: string;
-    playerSeedKey: string;
+    playerSeedKey?: string;
 }
 
 // startHand is called by each player, starting with player 0.

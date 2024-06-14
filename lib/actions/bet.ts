@@ -3,7 +3,7 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { getKeypair } from "@/lib/keypair/getKeyPair"
 import {
   PACKAGE_ADDRESS,
-  Player1_SECRET_KEY,
+  PLAYER1_SECRET_KEY,
 } from "@/lib/config";
 import { MIST_PER_SUI } from "@mysten/sui.js/utils";
 
@@ -30,7 +30,7 @@ export const bet = async ({
 
   return suiClient
     .signAndExecuteTransactionBlock({
-      signer: getKeypair(Player1_SECRET_KEY!),
+      signer: getKeypair(PLAYER1_SECRET_KEY!),
       transactionBlock: tx,
       requestType: "WaitForLocalExecution",
       options: {
